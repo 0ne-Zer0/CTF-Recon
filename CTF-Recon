@@ -1,0 +1,70 @@
+#!/bin/bash
+clear
+echo "
+
+ ▄████████     ███        ▄████████         ▄████████    ▄████████  ▄████████  ▄██████▄  ███▄▄▄▄   
+███    ███ ▀█████████▄   ███    ███        ███    ███   ███    ███ ███    ███ ███    ███ ███▀▀▀██▄ 
+███    █▀     ▀███▀▀██   ███    █▀         ███    ███   ███    █▀  ███    █▀  ███    ███ ███   ███ 
+███            ███   ▀  ▄███▄▄▄           ▄███▄▄▄▄██▀  ▄███▄▄▄     ███        ███    ███ ███   ███ 
+███            ███     ▀▀███▀▀▀          ▀▀███▀▀▀▀▀   ▀▀███▀▀▀     ███        ███    ███ ███   ███ 
+███    █▄      ███       ███             ▀███████████   ███    █▄  ███    █▄  ███    ███ ███   ███ 
+███    ███     ███       ███               ███    ███   ███    ███ ███    ███ ███    ███ ███   ███ 
+████████▀     ▄████▀     ███               ███    ███   ██████████ ████████▀   ▀██████▀   ▀█   █▀  
+                                           ███    ███                               
+					                                        [ by: 0ne-Zer0 ]					   
+"
+# Cria um diretório com o nome da box que está sendo realizada e subdiretórios para documentação de todo o processo.
+read -p "Digite a plataforma de CTF [THM / HTB]: " ctf
+
+read -p "Digite o nome da BOX: " box
+
+sleep 1
+
+echo -e "\nCriando diretório $box em:\n \n/home/kali/Downloads/CTF/$ctf\n"
+
+mkdir /home/kali/Downloads/CTF/$ctf/$box
+
+#####################################################################
+	                                                                #
+sub=("nmap" "gobuster" "report" "machine_files" "www" "exploits")   #  Edit this list to fit your needs
+	                                                                #
+#####################################################################
+
+for i in ${sub[@]}; do
+
+echo -e "Criando sub-diretório $i em /home/kali/Downloads/CTF/$ctf/$box"
+
+mkdir /home/kali/Downloads/CTF/$ctf/$box/$i
+
+sleep 1
+
+done
+
+echo -e "\n\nDiretórios criados, É HORA DO SHOW!\n\n"
+
+# Armazena o endereço IP do alvo em uma veriável para que possa ser utilizada pelas ferramentas
+read -p "Digite o endereço IP alvo: " ip
+echo ""
+
+# Inicia o scan de portas com o Rustscan/NMAP
+echo "Iniciando o escaneamento de portas ..."
+echo ""
+rustscan --ulimit 5000 $ip -- -sV -sC -T 5 -oN /home/kali/Downloads/CTF/$ctf/$box/nmap/nmap_scan.txt
+
+# Verifica se o serviço web está rodando
+if grep "http" /home/kali/Downloads/CTF/$ctf/$box/nmap/nmap_scan.txt || grep "https" /home/kali/Downloads/CTF/$ctf/$box/nmap/nmap_scan.txt; then
+    echo ""
+    echo "Serviço web encontrado! Executando Gobuster ..."
+    echo ""
+# Executa o Gobuster para encontrar diretórios e arquivos
+gobuster dir -u http://$ip -w /usr/share/wordlists/dirb/big.txt -e -f -r -t 65 -x php,txt,html --no-error -o /home/kali/Downloads/CTF/$ctf/$box/gobuster/gobuster_scan.txt
+fi
+
+echo -e "\n\nRecon finalizado!"
+echo -e "
+██   ██  █████   ██████ ██   ██     ████████ ██   ██ ███████     ██████  ██       █████  ███    ██ ███████ ████████ ██
+██   ██ ██   ██ ██      ██  ██         ██    ██   ██ ██          ██   ██ ██      ██   ██ ████   ██ ██         ██    ██
+███████ ███████ ██      █████          ██    ███████ █████       ██████  ██      ███████ ██ ██  ██ █████      ██    ██
+██   ██ ██   ██ ██      ██  ██         ██    ██   ██ ██          ██      ██      ██   ██ ██  ██ ██ ██         ██
+██   ██ ██   ██  ██████ ██   ██        ██    ██   ██ ███████     ██      ███████ ██   ██ ██   ████ ███████    ██    ██
+"
